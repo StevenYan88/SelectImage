@@ -4,8 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="@color/color_black"
+    android:orientation="vertical"
     tools:context=".ui.SelectImageActivity"
     tools:ignore="RtlHardcoded">
 
@@ -15,42 +15,42 @@
 
         <TextView
             android:id="@+id/tv_back"
-            android:layout_centerVertical="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:layout_gravity="center_vertical"
             android:layout_marginLeft="16dp"
             android:drawableLeft="@mipmap/ic_back"
-            android:layout_gravity="center_vertical"
             android:text="图片和视频"
-            android:textSize="18sp"
             android:textColor="@color/color_white"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:textSize="18sp"/>
 
 
         <TextView
-            android:id="@+id/tv_select_count"
-            android:layout_centerVertical="true"
-            android:layout_marginRight="16dp"
-            android:textColor="@color/colorAccent"
-            android:textSize="16sp"
-            android:text="完成"
-            android:layout_alignParentRight="true"
-            android:layout_gravity="right"
+            android:id="@+id/tv_ok"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_gravity="right"
+            android:layout_marginRight="16dp"
+            android:text="完成"
+            android:textColor="@color/colorAccent"
+            android:textSize="16sp"/>
 
     </RelativeLayout>
 
 
     <FrameLayout
-        android:layout_weight="1"
         android:layout_width="match_parent"
-        android:layout_height="0dp">
+        android:layout_height="0dp"
+        android:layout_weight="1">
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/rv"
-            android:layout_height="match_parent"
-            android:layout_width="match_parent">
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
         </android.support.v7.widget.RecyclerView>
 
         <com.steven.selectimage.widget.ImageFolderView
@@ -71,27 +71,28 @@
 
         <TextView
             android:id="@+id/tv_photo"
-            android:layout_centerVertical="true"
-            android:layout_alignParentLeft="true"
-            android:layout_marginLeft="16dp"
-            android:layout_gravity="center_vertical"
-            android:text="图片和视频"
-            android:textSize="18sp"
-            android:textColor="@color/color_white"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="16dp"
+            android:text="图片和视频"
+            android:textColor="@color/color_white"
+            android:textSize="18sp"/>
 
         <TextView
             android:id="@+id/tv_preview"
-            android:layout_centerVertical="true"
-            android:layout_marginRight="16dp"
-            android:textColor="@color/colorAccent"
-            android:textSize="16sp"
-            android:text="预览"
-            android:layout_alignParentRight="true"
-            android:layout_gravity="right"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_gravity="right"
+            android:layout_marginRight="16dp"
+            android:clickable="false"
+            android:text="预览"
+            android:textColor="@color/colorAccentGray"
+            android:textSize="16sp"/>
 
     </RelativeLayout>
 

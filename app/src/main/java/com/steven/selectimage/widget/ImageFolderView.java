@@ -2,6 +2,7 @@ package com.steven.selectimage.widget;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.graphics.Color;
@@ -49,7 +50,7 @@ public class ImageFolderView extends FrameLayout implements OnItemClickListener 
         super(context, attrs, defStyleAttr);
         mShadowView = new View(context);
         mShadowView.setBackgroundColor(Color.parseColor(mShadowViewColor));
-        mImageFolderRv = ( RecyclerView ) inflate(context, R.layout.image_folder_layout, null);
+        mImageFolderRv = (RecyclerView) inflate(context, R.layout.image_folder_layout, null);
         //设置LayoutParams
         FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT);
@@ -93,15 +94,13 @@ public class ImageFolderView extends FrameLayout implements OnItemClickListener 
         }
         mShow = true;
         mShadowView.setVisibility(VISIBLE);
-        ObjectAnimator animator = ObjectAnimator.ofFloat(mImageFolderRv,
-                "translationY", mImageFolderHeight, 0);
-        animator.setInterpolator(new AccelerateDecelerateInterpolator());
-        animator.setDuration(388);
-        animator.start();
-
+        ObjectAnimator translationYAnimator = ObjectAnimator.ofFloat(mImageFolderRv, "translationY", mImageFolderHeight, 0);
+        translationYAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
         ObjectAnimator alphaAnimator = ObjectAnimator.ofFloat(mShadowView, "alpha", 0f, 1f);
-        alphaAnimator.setDuration(388);
-        alphaAnimator.start();
+        AnimatorSet animatorSet = new AnimatorSet();
+        animatorSet.playTogether(translationYAnimator, alphaAnimator);
+        animatorSet.setDuration(388);
+        animatorSet.start();
 
     }
 
@@ -115,29 +114,22 @@ public class ImageFolderView extends FrameLayout implements OnItemClickListener 
         if (mListener != null) {
             mListener.onDismiss();
         }
-        ObjectAnimator animator = ObjectAnimator.ofFloat(mImageFolderRv,
+        ObjectAnimator translationYAnimator = ObjectAnimator.ofFloat(mImageFolderRv,
                 "translationY", 0, mImageFolderHeight);
-        animator.setInterpolator(new AccelerateDecelerateInterpolator());
-        animator.setDuration(388);
-        animator.start();
-
+        translationYAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
         ObjectAnimator alphaAnimator = ObjectAnimator.ofFloat(mShadowView, "alpha", 1f, 0f);
-        alphaAnimator.setDuration(388);
-        alphaAnimator.start();
-
-        alphaAnimator.addListener(new AnimatorListenerAdapter() {
+        AnimatorSet animatorSet = new AnimatorSet();
+        animatorSet.playTogether(translationYAnimator, alphaAnimator);
+        animatorSet.setDuration(388);
+        animatorSet.start();
+        animatorSet.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
                 super.onAnimationEnd(animation);
                 mShow = false;
                 mShadowView.setVisibility(GONE);
-
             }
         });
-    }
-
-    public boolean isShowing() {
-        return mShow;
     }
 
 
@@ -146,25 +138,30 @@ public class ImageFolderView extends FrameLayout implements OnItemClickListener 
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         //获取高度
         int height = MeasureSpec.getSize(heightMeasureSpec);
-        mImageFolderHeight = ( int ) (height * 0.9f);
+        mImageFolderHeight = (int) (height * 0.9f);
         ViewGroup.LayoutParams params = mImageFolderRv.getLayoutParams();
         params.height = mImageFolderHeight;
         mImageFolderRv.setLayoutParams(params);
+        measureChild(mImageFolderRv, widthMeasureSpec, heightMeasureSpec);
         //开始的时候，移下去
         mImageFolderRv.setTranslationY(mImageFolderHeight);
+    }
+
+    public boolean isShowing() {
+        return mShow;
     }
 
 
     @Override
     public void onItemClick(int position) {
         if (mListener != null) {
-            mListener.onSelect(this, mImageFolders.get(position));
+            mListener.onSelectFolder(this, mImageFolders.get(position));
             hide();
         }
     }
 
     public interface ImageFolderViewListener {
-        void onSelect(ImageFolderView imageFolderView, ImageFolder imageFolder);
+        void onSelectFolder(ImageFolderView imageFolderView, ImageFolder imageFolder);
 
         void onDismiss();
 

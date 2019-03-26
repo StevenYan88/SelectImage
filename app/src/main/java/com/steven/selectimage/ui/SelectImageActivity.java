@@ -1,6 +1,7 @@
 package com.steven.selectimage.ui;
 
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -21,7 +22,6 @@ import com.steven.selectimage.R;
 import com.steven.selectimage.model.Image;
 import com.steven.selectimage.model.ImageFolder;
 import com.steven.selectimage.recyclerview.MultiTypeSupport;
-import com.steven.selectimage.recyclerview.OnItemClickListener;
 import com.steven.selectimage.recyclerview.SpaceGridItemDecoration;
 import com.steven.selectimage.ui.adapter.ImageAdapter;
 import com.steven.selectimage.ui.adapter.ImageFolderAdapter;
@@ -37,9 +37,12 @@ import butterknife.BindView;
 import butterknife.OnClick;
 
 public class SelectImageActivity extends BaseActivity implements ImageFolderView.ImageFolderViewListener {
+    // 返回选择图片列表的EXTRA_KEY
+    public static final String EXTRA_RESULT = "EXTRA_RESULT";
+    public static final int MAX_SIZE = 9;
     @BindView(R.id.tv_back)
     TextView mTvBack;
-    @BindView(R.id.tv_select_count)
+    @BindView(R.id.tv_ok)
     TextView mTvSelectCount;
     @BindView(R.id.rv)
     RecyclerView mRvImage;
@@ -67,19 +70,27 @@ public class SelectImageActivity extends BaseActivity implements ImageFolderView
         //设置状态栏的颜色
         StatusBarUtil.statusBarTintColor(this, ContextCompat.getColor(this, R.color.color_black));
         mRvImage.setLayoutManager(new GridLayoutManager(this, 4, LinearLayoutManager.VERTICAL, false));
-        mRvImage.addItemDecoration(new SpaceGridItemDecoration(( int ) TDevice.dipToPx(getResources(), 1)));
+        mRvImage.addItemDecoration(new SpaceGridItemDecoration((int) TDevice.dipToPx(getResources(), 1)));
         //异步加载图片
         getSupportLoaderManager().initLoader(0, null, mLoaderCallbacks);
         mImageFolderView.setListener(this);
     }
 
-    @OnClick({R.id.tv_back, R.id.tv_select_count, R.id.tv_photo, R.id.tv_preview})
+    @OnClick({R.id.tv_back, R.id.tv_ok, R.id.tv_photo, R.id.tv_preview})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.tv_back:
                 finish();
                 break;
-            case R.id.tv_select_count:
+            case R.id.tv_ok:
+                ArrayList<String> paths = new ArrayList<>();
+                for (Image selectedImage : mSelectedImages) {
+                    paths.add(selectedImage.getPath());
+                }
+                Intent intent = new Intent();
+                intent.putStringArrayListExtra(EXTRA_RESULT, paths);
+                setResult(RESULT_OK, intent);
+                finish();
                 break;
             case R.id.tv_photo:
                 if (mImageFolderView.isShowing()) {
@@ -107,28 +118,40 @@ public class SelectImageActivity extends BaseActivity implements ImageFolderView
         mImages.clear();
         mImages.addAll(images);
         if (mImageAdapter == null) {
-            mImageAdapter = new ImageAdapter(this, mImages, new MultiTypeSupport<Image>() {
-                @Override
-                public int getLayoutId(Image image) {
-                    if (TextUtils.isEmpty(image.getPath())) {
-                        return R.layout.item_list_camera;
-                    }
-                    return R.layout.item_list_image;
-                }
-            });
+            mImageAdapter = new ImageAdapter(this, mImages, mMultiTypeSupport);
             mRvImage.setAdapter(mImageAdapter);
         } else {
             mImageAdapter.notifyDataSetChanged();
         }
-        mImageAdapter.setItemClickListener(new OnItemClickListener() {
-            @Override
-            public void onItemClick(int position) {
-
-            }
-        });
-
+        mImageAdapter.setSelectImageCountListener(mOnSelectImageCountListener);
     }
 
+    private MultiTypeSupport<Image> mMultiTypeSupport = image -> {
+        if (TextUtils.isEmpty(image.getPath())) {
+            return R.layout.item_list_camera;
+        }
+        return R.layout.item_list_image;
+    };
+    private ImageAdapter.onSelectImageCountListener mOnSelectImageCountListener = new ImageAdapter.onSelectImageCountListener() {
+        @Override
+        public void onSelectImageCount(int count) {
+            if (count == 0) {
+                mTvPreview.setClickable(false);
+                mTvPreview.setText("预览");
+                mTvPreview.setTextColor(ContextCompat.getColor(SelectImageActivity.this, R.color.colorAccentGray));
+            } else if (count > 0 && count <= MAX_SIZE) {
+                mTvPreview.setClickable(true);
+                mTvPreview.setText(String.format("预览(%d/9) ", count));
+                mTvPreview.setTextColor(ContextCompat.getColor(SelectImageActivity.this, R.color.colorAccent));
+            }
+
+        }
+
+        @Override
+        public void onSelectImageList(ArrayList<Image> images) {
+            mSelectedImages.addAll(images);
+        }
+    };
     private LoaderManager.LoaderCallbacks<Cursor> mLoaderCallbacks = new LoaderManager.LoaderCallbacks<Cursor>() {
         private final String[] IMAGE_PROJECTION = {
                 MediaStore.Images.Media.DATA,
@@ -179,9 +202,7 @@ public class SelectImageActivity extends BaseActivity implements ImageFolderView
                         image.setId(id);
                         image.setThumbPath(thumbPath);
                         image.setFolderName(bucket);
-
                         images.add(image);
-
                         //如果是被选中的图片
                         if (mSelectedImages.size() > 0) {
                             for (Image i : mSelectedImages) {
@@ -196,13 +217,13 @@ public class SelectImageActivity extends BaseActivity implements ImageFolderView
                         ImageFolder folder = new ImageFolder();
                         folder.setName(folderFile.getName());
                         folder.setPath(folderFile.getAbsolutePath());
+                        //ImageFolder复写了equal方法，equal方法比较的是文件夹的路径
                         if (!mImageFolders.contains(folder)) {
                             folder.getImages().add(image);
                             //默认相册封面
                             folder.setAlbumPath(image.getPath());
                             mImageFolders.add(folder);
                         } else {
-                            // 更新
                             ImageFolder imageFolder = mImageFolders.get(mImageFolders.indexOf(folder));
                             imageFolder.getImages().add(image);
                         }
@@ -240,7 +261,7 @@ public class SelectImageActivity extends BaseActivity implements ImageFolderView
 
 
     @Override
-    public void onSelect(ImageFolderView imageFolderView, ImageFolder imageFolder) {
+    public void onSelectFolder(ImageFolderView imageFolderView, ImageFolder imageFolder) {
         addImagesToAdapter(imageFolder.getImages());
         mRvImage.scrollToPosition(0);
         mTvPhoto.setText(imageFolder.getName());
