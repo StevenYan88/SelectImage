@@ -45,7 +45,7 @@ public class ImageAdapter extends CommonRecycleAdapter<Image> {
                     image.setSelect(false);
                     mSelectImages.remove(image);
                     chb_selected.setSelected(false);
-                } else if (mSelectImages.size() <= SelectImageActivity.MAX_SIZE) {
+                } else if (mSelectImages.size() < SelectImageActivity.MAX_SIZE) {
                     image.setSelect(true);
                     mSelectImages.add(image);
                     chb_selected.setSelected(true);
