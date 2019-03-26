@@ -50,10 +50,10 @@ public class ImageAdapter extends CommonRecycleAdapter<Image> {
                     mSelectImages.add(image);
                     chb_selected.setSelected(true);
                     maskView.setVisibility(image.isSelect() ? View.VISIBLE : View.GONE);
-                    if (mSelectImageCountListener != null) {
-                        mSelectImageCountListener.onSelectImageCount(mSelectImages.size());
-                        mSelectImageCountListener.onSelectImageList(mSelectImages);
-                    }
+                }
+                if (mSelectImageCountListener != null) {
+                    mSelectImageCountListener.onSelectImageCount(mSelectImages.size());
+                    mSelectImageCountListener.onSelectImageList(mSelectImages);
                 }
             });
             chb_selected.setSelected(image.isSelect());
