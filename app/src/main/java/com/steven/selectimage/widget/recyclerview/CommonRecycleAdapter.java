@@ -1,4 +1,4 @@
-package com.steven.selectimage.recyclerview;
+package com.steven.selectimage.widget.recyclerview;
 
 import android.content.Context;
 import android.support.annotation.NonNull;

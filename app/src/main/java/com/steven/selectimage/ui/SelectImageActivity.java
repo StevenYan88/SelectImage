@@ -21,8 +21,8 @@ import android.widget.TextView;
 import com.steven.selectimage.R;
 import com.steven.selectimage.model.Image;
 import com.steven.selectimage.model.ImageFolder;
-import com.steven.selectimage.recyclerview.MultiTypeSupport;
-import com.steven.selectimage.recyclerview.SpaceGridItemDecoration;
+import com.steven.selectimage.widget.recyclerview.MultiTypeSupport;
+import com.steven.selectimage.widget.recyclerview.SpaceGridItemDecoration;
 import com.steven.selectimage.ui.adapter.ImageAdapter;
 import com.steven.selectimage.ui.adapter.ImageFolderAdapter;
 import com.steven.selectimage.utils.StatusBarUtil;
@@ -144,11 +144,11 @@ public class SelectImageActivity extends BaseActivity implements ImageFolderView
                 mTvPreview.setText(String.format("预览(%d/9) ", count));
                 mTvPreview.setTextColor(ContextCompat.getColor(SelectImageActivity.this, R.color.colorAccent));
             }
-
         }
 
         @Override
         public void onSelectImageList(ArrayList<Image> images) {
+            mSelectedImages.clear();
             mSelectedImages.addAll(images);
         }
     };

@@ -18,7 +18,7 @@ import android.widget.FrameLayout;
 
 import com.steven.selectimage.R;
 import com.steven.selectimage.model.ImageFolder;
-import com.steven.selectimage.recyclerview.OnItemClickListener;
+import com.steven.selectimage.widget.recyclerview.OnItemClickListener;
 import com.steven.selectimage.ui.adapter.ImageFolderAdapter;
 
 import java.util.List;

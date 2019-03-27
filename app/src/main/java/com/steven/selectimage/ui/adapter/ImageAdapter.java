@@ -8,9 +8,9 @@ import android.widget.ImageView;
 import com.steven.selectimage.GlideApp;
 import com.steven.selectimage.R;
 import com.steven.selectimage.model.Image;
-import com.steven.selectimage.recyclerview.CommonRecycleAdapter;
-import com.steven.selectimage.recyclerview.CommonViewHolder;
-import com.steven.selectimage.recyclerview.MultiTypeSupport;
+import com.steven.selectimage.widget.recyclerview.CommonRecycleAdapter;
+import com.steven.selectimage.widget.recyclerview.CommonViewHolder;
+import com.steven.selectimage.widget.recyclerview.MultiTypeSupport;
 import com.steven.selectimage.ui.SelectImageActivity;
 
 import java.util.ArrayList;
