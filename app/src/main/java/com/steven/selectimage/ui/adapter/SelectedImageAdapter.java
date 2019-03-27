@@ -1,11 +1,11 @@
 package com.steven.selectimage.ui.adapter;
 
 import android.content.Context;
-import android.util.Log;
 import android.widget.ImageView;
 
 import com.steven.selectimage.GlideApp;
 import com.steven.selectimage.R;
+import com.steven.selectimage.utils.BitmapUtil;
 import com.steven.selectimage.widget.recyclerview.CommonRecycleAdapter;
 import com.steven.selectimage.widget.recyclerview.CommonViewHolder;
 
@@ -27,8 +27,9 @@ public class SelectedImageAdapter extends CommonRecycleAdapter<String> {
 
     @Override
     protected void convert(CommonViewHolder holder, String path, int position) {
-        Log.w("path=", path);
         ImageView iv = holder.getView(R.id.iv_selected_image);
-        GlideApp.with(mContext).load(path).into(iv);
+        GlideApp.with(mContext)
+                .load(BitmapUtil.decodeSampledBitmapFromResource(path, 360, 540))
+                .into(iv);
     }
 }
