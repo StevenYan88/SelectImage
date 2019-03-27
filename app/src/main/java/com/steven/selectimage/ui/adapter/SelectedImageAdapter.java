@@ -5,7 +5,6 @@ import android.widget.ImageView;
 
 import com.steven.selectimage.GlideApp;
 import com.steven.selectimage.R;
-import com.steven.selectimage.utils.BitmapUtil;
 import com.steven.selectimage.widget.recyclerview.CommonRecycleAdapter;
 import com.steven.selectimage.widget.recyclerview.CommonViewHolder;
 
@@ -29,7 +28,8 @@ public class SelectedImageAdapter extends CommonRecycleAdapter<String> {
     protected void convert(CommonViewHolder holder, String path, int position) {
         ImageView iv = holder.getView(R.id.iv_selected_image);
         GlideApp.with(mContext)
-                .load(BitmapUtil.decodeSampledBitmapFromResource(path, 360, 540))
+                .load(path)
+                .centerCrop()
                 .into(iv);
     }
 }
