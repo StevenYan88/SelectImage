@@ -4,6 +4,7 @@ package com.steven.selectimage.ui;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -21,13 +22,13 @@ import android.widget.TextView;
 import com.steven.selectimage.R;
 import com.steven.selectimage.model.Image;
 import com.steven.selectimage.model.ImageFolder;
-import com.steven.selectimage.widget.recyclerview.MultiTypeSupport;
-import com.steven.selectimage.widget.recyclerview.SpaceGridItemDecoration;
 import com.steven.selectimage.ui.adapter.ImageAdapter;
 import com.steven.selectimage.ui.adapter.ImageFolderAdapter;
 import com.steven.selectimage.utils.StatusBarUtil;
 import com.steven.selectimage.utils.TDevice;
 import com.steven.selectimage.widget.ImageFolderView;
+import com.steven.selectimage.widget.recyclerview.MultiTypeSupport;
+import com.steven.selectimage.widget.recyclerview.SpaceGridItemDecoration;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -69,11 +70,25 @@ public class SelectImageActivity extends BaseActivity implements ImageFolderView
     protected void init() {
         //设置状态栏的颜色
         StatusBarUtil.statusBarTintColor(this, ContextCompat.getColor(this, R.color.color_black));
+        setupSelectedImages();
         mRvImage.setLayoutManager(new GridLayoutManager(this, 4, LinearLayoutManager.VERTICAL, false));
         mRvImage.addItemDecoration(new SpaceGridItemDecoration((int) TDevice.dipToPx(getResources(), 1)));
         //异步加载图片
         getSupportLoaderManager().initLoader(0, null, mLoaderCallbacks);
         mImageFolderView.setListener(this);
+
+    }
+
+    private void setupSelectedImages() {
+        Intent intent = getIntent();
+        ArrayList<Image> selectImages = intent.getParcelableArrayListExtra("selected_images");
+        mSelectedImages.addAll(selectImages);
+
+        if (mSelectedImages.size() > 0 && mSelectedImages.size() <= MAX_SIZE) {
+            mTvPreview.setClickable(true);
+            mTvPreview.setText(String.format("预览(%d/9) ", mSelectedImages.size()));
+            mTvPreview.setTextColor(ContextCompat.getColor(SelectImageActivity.this, R.color.colorAccent));
+        }
     }
 
     @OnClick({R.id.tv_back, R.id.tv_ok, R.id.tv_photo, R.id.tv_preview})
@@ -83,12 +98,8 @@ public class SelectImageActivity extends BaseActivity implements ImageFolderView
                 finish();
                 break;
             case R.id.tv_ok:
-                ArrayList<String> paths = new ArrayList<>();
-                for (Image selectedImage : mSelectedImages) {
-                    paths.add(selectedImage.getPath());
-                }
                 Intent intent = new Intent();
-                intent.putStringArrayListExtra(EXTRA_RESULT, paths);
+                intent.putParcelableArrayListExtra(EXTRA_RESULT, (ArrayList<? extends Parcelable>) mSelectedImages);
                 setResult(RESULT_OK, intent);
                 finish();
                 break;
@@ -100,6 +111,9 @@ public class SelectImageActivity extends BaseActivity implements ImageFolderView
                 }
                 break;
             case R.id.tv_preview:
+                Intent previewIntent = new Intent(this, PreviewImageActivity.class);
+                previewIntent.putParcelableArrayListExtra("preview_images", (ArrayList<? extends Parcelable>) mSelectedImages);
+                startActivity(previewIntent);
                 break;
         }
     }
@@ -118,7 +132,7 @@ public class SelectImageActivity extends BaseActivity implements ImageFolderView
         mImages.clear();
         mImages.addAll(images);
         if (mImageAdapter == null) {
-            mImageAdapter = new ImageAdapter(this, mImages, mMultiTypeSupport);
+            mImageAdapter = new ImageAdapter(this, mImages, mSelectedImages, mMultiTypeSupport);
             mRvImage.setAdapter(mImageAdapter);
         } else {
             mImageAdapter.notifyDataSetChanged();
@@ -147,9 +161,8 @@ public class SelectImageActivity extends BaseActivity implements ImageFolderView
         }
 
         @Override
-        public void onSelectImageList(ArrayList<Image> images) {
-            mSelectedImages.clear();
-            mSelectedImages.addAll(images);
+        public void onSelectImageList(List<Image> images) {
+            mSelectedImages = images;
         }
     };
     private LoaderManager.LoaderCallbacks<Cursor> mLoaderCallbacks = new LoaderManager.LoaderCallbacks<Cursor>() {

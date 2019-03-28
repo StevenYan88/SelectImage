@@ -8,12 +8,11 @@ import android.widget.ImageView;
 import com.steven.selectimage.GlideApp;
 import com.steven.selectimage.R;
 import com.steven.selectimage.model.Image;
+import com.steven.selectimage.ui.SelectImageActivity;
 import com.steven.selectimage.widget.recyclerview.CommonRecycleAdapter;
 import com.steven.selectimage.widget.recyclerview.CommonViewHolder;
 import com.steven.selectimage.widget.recyclerview.MultiTypeSupport;
-import com.steven.selectimage.ui.SelectImageActivity;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -25,12 +24,12 @@ import java.util.List;
 public class ImageAdapter extends CommonRecycleAdapter<Image> {
     private Context mContext;
     private onSelectImageCountListener mSelectImageCountListener;
-    private ArrayList<Image> mSelectImages;
+    private List<Image> mSelectImages;
 
-    public ImageAdapter(Context context, List<Image> images, MultiTypeSupport typeSupport) {
+    public ImageAdapter(Context context, List<Image> images, List<Image> selectedImages, MultiTypeSupport typeSupport) {
         super(context, images, typeSupport);
         this.mContext = context;
-        this.mSelectImages = new ArrayList<>();
+        this.mSelectImages = selectedImages;
     }
 
     @Override
@@ -68,6 +67,6 @@ public class ImageAdapter extends CommonRecycleAdapter<Image> {
     public interface onSelectImageCountListener {
         void onSelectImageCount(int count);
 
-        void onSelectImageList(ArrayList<Image> images);
+        void onSelectImageList(List<Image> images);
     }
 }

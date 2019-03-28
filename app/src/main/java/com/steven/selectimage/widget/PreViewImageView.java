@@ -40,11 +40,11 @@ public class PreViewImageView extends AppCompatImageView {
     private FloatEvaluator mFloatEvaluator = new FloatEvaluator();
 
     public PreViewImageView(Context context) {
-        super(context);
+        this(context,null);
     }
 
     public PreViewImageView(Context context, AttributeSet attrs) {
-        super(context, attrs);
+        this(context, attrs,0);
     }
 
     public PreViewImageView(Context context, AttributeSet attrs, int defStyleAttr) {

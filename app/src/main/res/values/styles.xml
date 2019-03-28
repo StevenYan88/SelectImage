@@ -16,4 +16,10 @@
         <item name="android:windowExitAnimation">@anim/popup_select_image_hide</item>
 
     </style>
+
+
+    <style name="AppFullScreen" parent="AppBaseTheme">
+        <item name="android:windowFullscreen">true</item>
+
+    </style>
 </resources>

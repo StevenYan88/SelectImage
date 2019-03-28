@@ -1,12 +1,16 @@
 package com.steven.selectimage.model;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 /**
  * Description:
  * Data：9/4/2018-11:50 AM
  *
  * @author yanzhiwen
  */
-public class Image {
+public class Image implements Parcelable {
+
     private int id;
     private String path;
     private String thumbPath;
@@ -78,4 +82,45 @@ public class Image {
         }
         return false;
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(this.id);
+        dest.writeString(this.path);
+        dest.writeString(this.thumbPath);
+        dest.writeByte(this.isSelect ? (byte) 1 : (byte) 0);
+        dest.writeString(this.folderName);
+        dest.writeString(this.name);
+        dest.writeLong(this.date);
+    }
+
+    public Image() {
+    }
+
+    protected Image(Parcel in) {
+        this.id = in.readInt();
+        this.path = in.readString();
+        this.thumbPath = in.readString();
+        this.isSelect = in.readByte() != 0;
+        this.folderName = in.readString();
+        this.name = in.readString();
+        this.date = in.readLong();
+    }
+
+    public static final Creator<Image> CREATOR = new Creator<Image>() {
+        @Override
+        public Image createFromParcel(Parcel source) {
+            return new Image(source);
+        }
+
+        @Override
+        public Image[] newArray(int size) {
+            return new Image[size];
+        }
+    };
 }
