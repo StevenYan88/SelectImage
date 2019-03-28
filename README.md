@@ -2,8 +2,7 @@
 Android--选择多张图片，支持拖拽删除、排序、预览图片
 
 **效果图**
-![2019-03-28_11_45_57.gif](https://upload-images.jianshu.io/upload_images/1472453-e0153839f1a9a8b9.gif?imageMogr2/auto-orient/strip)
-
+![2019-03-28_11_45_57.gif](https://upload-images.jianshu.io/upload_images/1472453-e0153839f1a9a8b9.gif?imageMogr2/auto-orient/strip)  
 
 截图1 | 截图2 | 截图 3 | 截图 4 
 ---|---|---|---
