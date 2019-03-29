@@ -57,8 +57,15 @@ public class ImageAdapter extends CommonRecycleAdapter<Image> {
             });
             chb_selected.setSelected(image.isSelect());
             maskView.setVisibility(image.isSelect() ? View.VISIBLE : View.GONE);
+        } else {
+            holder.getView(R.id.iv_camera).setOnClickListener(v -> {
+                if (mOnCameraClickListener != null) {
+                    mOnCameraClickListener.onCameraClick();
+                }
+            });
         }
     }
+
 
     public void setSelectImageCountListener(onSelectImageCountListener selectImageCountListener) {
         mSelectImageCountListener = selectImageCountListener;
@@ -68,5 +75,15 @@ public class ImageAdapter extends CommonRecycleAdapter<Image> {
         void onSelectImageCount(int count);
 
         void onSelectImageList(List<Image> images);
+    }
+
+    private onCameraClickListener mOnCameraClickListener;
+
+    public void setOnCameraClickListener(onCameraClickListener onCameraClickListener) {
+        this.mOnCameraClickListener = onCameraClickListener;
+    }
+
+    public interface onCameraClickListener {
+        void onCameraClick();
     }
 }

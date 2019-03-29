@@ -1,23 +1,34 @@
 package com.steven.selectimage.ui;
 
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.CursorLoader;
+import android.support.v4.content.FileProvider;
 import android.support.v4.content.Loader;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.steven.selectimage.R;
 import com.steven.selectimage.model.Image;
@@ -31,16 +42,23 @@ import com.steven.selectimage.widget.recyclerview.MultiTypeSupport;
 import com.steven.selectimage.widget.recyclerview.SpaceGridItemDecoration;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import butterknife.BindView;
 import butterknife.OnClick;
 
-public class SelectImageActivity extends BaseActivity implements ImageFolderView.ImageFolderViewListener {
+public class SelectImageActivity extends BaseActivity implements ImageFolderView.ImageFolderViewListener, ImageAdapter.onCameraClickListener {
     // 返回选择图片列表的EXTRA_KEY
     public static final String EXTRA_RESULT = "EXTRA_RESULT";
     public static final int MAX_SIZE = 9;
+    private static final int PERMISSION_REQUEST_CODE = 88;
+    private static final int TAKE_PHOTO = 99;
     @BindView(R.id.tv_back)
     TextView mTvBack;
     @BindView(R.id.tv_ok)
@@ -60,6 +78,9 @@ public class SelectImageActivity extends BaseActivity implements ImageFolderView
     private List<ImageFolder> mImageFolders = new ArrayList<>();
     private ImageAdapter mImageAdapter;
     private ImageFolderAdapter mImageFolderAdapter;
+    private Uri mImageUri;
+    private File takePhotoImageFile;
+
 
     @Override
     protected int getLayoutId() {
@@ -90,6 +111,7 @@ public class SelectImageActivity extends BaseActivity implements ImageFolderView
             mTvPreview.setTextColor(ContextCompat.getColor(SelectImageActivity.this, R.color.colorAccent));
         }
     }
+
 
     @OnClick({R.id.tv_back, R.id.tv_ok, R.id.tv_photo, R.id.tv_preview})
     public void onViewClicked(View view) {
@@ -138,6 +160,7 @@ public class SelectImageActivity extends BaseActivity implements ImageFolderView
             mImageAdapter.notifyDataSetChanged();
         }
         mImageAdapter.setSelectImageCountListener(mOnSelectImageCountListener);
+        mImageAdapter.setOnCameraClickListener(this);
     }
 
     private MultiTypeSupport<Image> mMultiTypeSupport = image -> {
@@ -146,6 +169,8 @@ public class SelectImageActivity extends BaseActivity implements ImageFolderView
         }
         return R.layout.item_list_image;
     };
+    /*************************************已选择的图片回调的方法************************************************/
+
     private ImageAdapter.onSelectImageCountListener mOnSelectImageCountListener = new ImageAdapter.onSelectImageCountListener() {
         @Override
         public void onSelectImageCount(int count) {
@@ -165,6 +190,9 @@ public class SelectImageActivity extends BaseActivity implements ImageFolderView
             mSelectedImages = images;
         }
     };
+
+    /*************************************异步加载相册图片************************************************/
+
     private LoaderManager.LoaderCallbacks<Cursor> mLoaderCallbacks = new LoaderManager.LoaderCallbacks<Cursor>() {
         private final String[] IMAGE_PROJECTION = {
                 MediaStore.Images.Media.DATA,
@@ -288,5 +316,107 @@ public class SelectImageActivity extends BaseActivity implements ImageFolderView
     @Override
     public void onShow() {
 
+    }
+
+    /*************************************相机拍照************************************************/
+
+    @Override
+    public void onCameraClick() {
+        //首先申请下相机权限
+        int isPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA);
+        if (isPermission == PackageManager.PERMISSION_GRANTED) {
+            takePhoto();
+        } else {
+            //申请权限
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, PERMISSION_REQUEST_CODE);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                takePhoto();
+            } else {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, PERMISSION_REQUEST_CODE);
+                Toast.makeText(this, "需要您的相机权限!", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+
+    private void takePhoto() {
+        //用来打开相机的Intent
+        Intent takePhotoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        //这句作用是如果没有相机则该应用不会闪退，要是不加这句则当系统没有相机应用的时候该应用会闪退
+        if (takePhotoIntent.resolveActivity(getPackageManager()) != null) {
+            takePhotoImageFile = createImageFile();
+            if (takePhotoImageFile != null) {
+                Log.i("take photo", takePhotoImageFile.getAbsolutePath());
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    ///7.0以上要通过FileProvider将File转化为Uri
+                    mImageUri = FileProvider.getUriForFile(this, this.getPackageName() + ".fileprovider", takePhotoImageFile);
+                } else {
+                    //7.0以下则直接使用Uri的fromFile方法将File转化为Uri
+                    mImageUri = Uri.fromFile(takePhotoImageFile);
+                }
+                //将用于输出的文件Uri传递给相机
+                takePhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);
+                //启动相机
+                startActivityForResult(takePhotoIntent, TAKE_PHOTO);
+            }
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK && requestCode == TAKE_PHOTO) {
+            //缩略图信息是储存在返回的intent中的Bundle中的，对应Bundle中的键为data，因此从Intent中取出 Bundle再根据data取出来Bitmap即可
+            // Bundle extras = data.getExtras();
+            // Bitmap bitmap = (Bitmap) extras.get("data");
+//            BitmapFactory.decodeFile(this.getContentResolver().)
+//            galleryAddPictures(mImageUri);
+//            getSupportLoaderManager().restartLoader(0, null, mLoaderCallbacks);
+            galleryAddPictures();
+            try {
+                Bitmap bitmap = BitmapFactory.decodeStream(this.getContentResolver().openInputStream(mImageUri));
+                Log.i("take photo", bitmap + "");
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+
+        }
+    }
+
+
+    private File createImageFile() {
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.CHINA).format(new Date());
+        String imageFileName = "IMG_" + timeStamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File imageFile = null;
+        try {
+            imageFile = File.createTempFile(imageFileName, ".jpg", storageDir);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return imageFile;
+    }
+
+    /**
+     * 将拍的照片添加到相册
+     */
+    private void galleryAddPictures() {
+        //把文件插入到系统图库
+        try {
+            MediaStore.Images.Media.insertImage(this.getContentResolver(),
+                    takePhotoImageFile.getAbsolutePath(), takePhotoImageFile.getName(), null);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        //通知图库更新
+        Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(takePhotoImageFile));
+        sendBroadcast(mediaScanIntent);
     }
 }
