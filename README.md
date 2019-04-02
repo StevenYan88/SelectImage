@@ -1,5 +1,4 @@
-# SelectImage
-Android--选择多张图片，支持拖拽删除、排序、预览图片
+#### Android--选择多张图片，支持拖拽删除、排序、预览图片
 
 **效果图**
 ![2019-03-28_11_45_57.gif](https://upload-images.jianshu.io/upload_images/1472453-e0153839f1a9a8b9.gif?imageMogr2/auto-orient/strip)  
@@ -20,7 +19,7 @@ Android--选择多张图片，支持拖拽删除、排序、预览图片
 
 **License**  
 
-    Copyright 2018 StevenYan88
+    Copyright 2019 StevenYan88
     
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
